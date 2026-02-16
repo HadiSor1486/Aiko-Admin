@@ -13,37 +13,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     <style>
-  
-  #lock-overlay {
-    position: fixed; inset: 0; z-index: 99999;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  #lock-box {
-    background: rgba(255,255,255,0.07); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
-    padding: 48px 40px; width: 340px; text-align: center;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
-  #lock-icon { font-size:56px; display:block; margin-bottom:8px; animation:sway 3s ease-in-out infinite; filter:drop-shadow(0 0 12px rgba(99,179,237,0.6)); }
-  @keyframes sway { 0%,100%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} }
-  #lock-title { color:#fff; font-size:22px; font-weight:700; margin:16px 0 4px; }
-  #lock-subtitle { color:rgba(255,255,255,0.45); font-size:13px; margin-bottom:28px; }
-  #lock-input-wrap { position:relative; margin-bottom:16px; }
-  #lock-input { width:100%; padding:14px 48px 14px 18px; border-radius:12px; border:1.5px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.08); color:#fff; font-size:15px; outline:none; box-sizing:border-box; letter-spacing:2px; transition:border-color 0.25s; }
-  #lock-input::placeholder { color:rgba(255,255,255,0.3); letter-spacing:0; }
-  #lock-input:focus { border-color:#63b3ed; }
-  #toggle-pw { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; color:rgba(255,255,255,0.45); cursor:pointer; font-size:18px; }
-  #lock-btn { width:100%; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg,#3182ce,#63b3ed); color:#fff; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 18px rgba(49,130,206,0.45); transition:transform 0.15s; }
-  #lock-btn:hover { transform:translateY(-2px); }
-  #lock-error { margin-top:14px; color:#fc8181; font-size:13px; min-height:20px; opacity:0; transition:opacity 0.3s; }
-  #lock-error.show { opacity:1; }
-  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
-  #lock-box.shake { animation:shake 0.4s ease; }
-
         :root {
             --primary: #ff9ecd;
             --primary-light: #ffc4e1;
@@ -814,20 +783,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    
-    <div id="lock-overlay">
-  <div id="lock-box">
-    <span id="lock-icon">🔒</span>
-    <div id="lock-title">Admin Panel</div>
-    <div id="lock-subtitle">Enter your password to continue</div>
-    <div id="lock-input-wrap">
-      <input id="lock-input" type="password" placeholder="Password"
-        onkeydown="if(event.key==='Enter') unlockPanel()" />
-      <button id="toggle-pw" onclick="togglePw()" tabindex="-1">👁</button>
-    </div>
-    <button id="lock-btn" onclick="unlockPanel()">Unlock ✨</button>
-    <div id="lock-error">Incorrect password. Try again!</div>
-  </div>
         
     <!-- Main Admin Container -->
     <div class="admin-container" id="adminContainer">
@@ -1070,31 +1025,6 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
     </div>
 
     <script>
-const CORRECT_PASSWORD = 'sorex123';
-  function unlockPanel() {
-    const input = document.getElementById('lock-input');
-    const box = document.getElementById('lock-box');
-    const icon = document.getElementById('lock-icon');
-    if (input.value === CORRECT_PASSWORD) {
-      icon.textContent = '🔓';
-      icon.style.animation = 'none';
-      icon.style.filter = 'drop-shadow(0 0 14px rgba(72,187,120,0.8))';
-      setTimeout(() => {
-        const o = document.getElementById('lock-overlay');
-        o.style.transition = 'opacity 0.4s'; o.style.opacity = '0';
-        setTimeout(() => o.remove(), 400);
-      }, 450);
-    } else {
-      document.getElementById('lock-error').classList.add('show');
-      box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
-      input.value = ''; input.focus();
-    }
-  }
-  function togglePw() {
-    const i = document.getElementById('lock-input');
-    i.type = i.type === 'password' ? 'text' : 'password';
-  }
-  window.addEventListener('load', () => document.getElementById('lock-input').focus());
 
         // ============================================
         // SUPABASE CONFIGURATION
