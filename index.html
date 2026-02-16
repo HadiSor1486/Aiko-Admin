@@ -1101,7 +1101,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary" onclick="saveTheme()">💾 Save Theme</button>
+            <button class="btn btn-primary" id="saveThemeBtn" onclick="saveTheme()">💾 Save Theme</button>
 
             <!-- Automation Section -->
             <div class="automation-box">
@@ -1463,9 +1463,18 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
 
                 if (data) {
                     automationEnabled = data.enabled || false;
-                    document.getElementById('nightTime').value = data.night_time || '19:00';
-                    document.getElementById('defaultTime').value = data.default_time || '06:00';
+                    const nightTime = data.night_time || '19:00';
+                    const defaultTime = data.default_time || '06:00';
+                    document.getElementById('nightTime').value = nightTime;
+                    document.getElementById('defaultTime').value = defaultTime;
                     updateAutomationUI();
+
+                    // If automation is enabled, immediately apply the correct theme
+                    if (automationEnabled) {
+                        await applyAutomatedTheme(nightTime, defaultTime);
+                    }
+                    // Update manual controls state
+                    updateThemeUI();
                 }
             } catch (error) {
                 console.error('Error loading automation:', error);
@@ -1607,6 +1616,7 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
         // THEME FUNCTIONS
         // ============================================
         function selectTheme(theme) {
+            if (automationEnabled) return; // Prevent manual selection when automation is on
             currentTheme = theme;
             updateThemeUI();
         }
@@ -1614,9 +1624,38 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
         function updateThemeUI() {
             document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
             document.getElementById(`theme-${currentTheme}`).classList.add('active');
+
+            // Disable/enable manual controls based on automation
+            const themeCards = document.querySelectorAll('.theme-card');
+            const saveThemeBtn = document.getElementById('saveThemeBtn');
+            if (automationEnabled) {
+                themeCards.forEach(card => {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none';
+                });
+                if (saveThemeBtn) {
+                    saveThemeBtn.disabled = true;
+                    saveThemeBtn.style.opacity = '0.5';
+                    saveThemeBtn.style.pointerEvents = 'none';
+                }
+            } else {
+                themeCards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                });
+                if (saveThemeBtn) {
+                    saveThemeBtn.disabled = false;
+                    saveThemeBtn.style.opacity = '1';
+                    saveThemeBtn.style.pointerEvents = 'auto';
+                }
+            }
         }
 
         async function saveTheme() {
+            if (automationEnabled) {
+                alert('Automation is enabled! Turn off automation first to manually change the theme.');
+                return;
+            }
             try {
                 const { error } = await supabase
                     .from('themes')
@@ -1637,6 +1676,7 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
         function toggleAutomation() {
             automationEnabled = !automationEnabled;
             updateAutomationUI();
+            updateThemeUI(); // Update manual controls when toggling
         }
 
         function updateAutomationUI() {
@@ -1652,6 +1692,50 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
                 toggle.classList.remove('active');
                 status.textContent = 'Automation: Off';
                 container.style.display = 'none';
+            }
+        }
+
+        // Determine which theme should be active based on Lebanon time
+        function getAutomatedTheme(nightTime, defaultTime) {
+            const now = new Date();
+            // Get current time in Lebanon (Asia/Beirut)
+            const lebanonTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Beirut' }));
+            const currentMinutes = lebanonTime.getHours() * 60 + lebanonTime.getMinutes();
+
+            const [nightH, nightM] = nightTime.split(':').map(Number);
+            const [defaultH, defaultM] = defaultTime.split(':').map(Number);
+            const nightMinutes = nightH * 60 + nightM;
+            const defaultMinutes = defaultH * 60 + defaultM;
+
+            // Handle schedule that crosses midnight (e.g., night=19:00, default=06:00)
+            if (nightMinutes > defaultMinutes) {
+                // Night is active from nightMinutes to midnight AND midnight to defaultMinutes
+                if (currentMinutes >= nightMinutes || currentMinutes < defaultMinutes) {
+                    return 'night';
+                }
+                return 'default';
+            } else {
+                // Night is active from nightMinutes to defaultMinutes (same day)
+                if (currentMinutes >= nightMinutes && currentMinutes < defaultMinutes) {
+                    return 'night';
+                }
+                return 'default';
+            }
+        }
+
+        // Apply the automated theme to the database
+        async function applyAutomatedTheme(nightTime, defaultTime) {
+            const correctTheme = getAutomatedTheme(nightTime, defaultTime);
+            currentTheme = correctTheme;
+            updateThemeUI();
+
+            // Save the determined theme to the themes table so the website picks it up
+            try {
+                await supabase
+                    .from('themes')
+                    .upsert({ id: 1, theme_name: correctTheme, updated_at: new Date().toISOString() });
+            } catch (error) {
+                console.error('Error applying automated theme:', error);
             }
         }
 
@@ -1673,12 +1757,30 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
 
                 if (error) throw error;
 
-                alert('Automation settings saved! 🕐');
+                // If automation is enabled, immediately apply the correct theme
+                if (automationEnabled) {
+                    await applyAutomatedTheme(nightTime, defaultTime);
+                    const appliedTheme = getAutomatedTheme(nightTime, defaultTime);
+                    alert(`Automation saved! Based on Lebanon time right now, the ${appliedTheme} theme has been applied. 🕐`);
+                } else {
+                    alert('Automation settings saved (automation is off). 🕐');
+                }
             } catch (error) {
                 console.error('Error saving automation:', error);
                 alert('Error saving automation: ' + error.message);
             }
         }
+
+        // Periodically check and apply the correct theme when automation is on (every 60 seconds)
+        setInterval(async () => {
+            if (!automationEnabled) return;
+            const nightTime = document.getElementById('nightTime').value;
+            const defaultTime = document.getElementById('defaultTime').value;
+            const correctTheme = getAutomatedTheme(nightTime, defaultTime);
+            if (correctTheme !== currentTheme) {
+                await applyAutomatedTheme(nightTime, defaultTime);
+            }
+        }, 60000);
 
         // ============================================
         // WELCOME FUNCTIONS
@@ -2280,3 +2382,5 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
     </script>
 </body>
 </html>
+
+
