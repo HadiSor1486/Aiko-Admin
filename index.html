@@ -1,1 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aiko Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff9ecd;
+            --primary-light: #ffc4e1;
+            --primary-dark: #ff7eb8;
+            --secondary: #a8d8ea;
+            --secondary-light: #c5f0f7;
+            --accent: #ffd93d;
+            --accent-light: #fff0a3;
+            --bg-gradient-start: #fff5f8;
+            --bg-gradient-end: #e8f4f8;
+            --text-dark: #5a4a5a;
+            --text-light: #8a7a8a;
+            --white: #ffffff;
+            --shadow: rgba(255, 158, 205, 0.25);
+            --shadow-soft: rgba(0, 0, 0, 0.08);
+            --success: #00b894;
+            --danger: #ff6b6b;
+            --warning: #ffa502;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Quicksand', 'Nunito', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Main Admin Container */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* Header */
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px var(--shadow-soft);
+        }
+
+        .admin-header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .admin-header p {
+            color: var(--text-light);
+        }
+
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .admin-tab {
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: 2px solid var(--primary-light);
+            background: var(--white);
+            color: var(--text-dark);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab:hover, .admin-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Sections */
+        .admin-section {
+            display: none;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 15px var(--shadow-soft);
+            margin-bottom: 20px;
+        }
+
+        .admin-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--primary-light);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            transition: border-color 0.3s ease;
+            background: var(--white);
+            color: var(--text-dark);
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-hint {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        /* Theme Switcher */
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .theme-card {
+            border: 3px solid var(--primary-light);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .theme-card.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(255, 158, 205, 0.1), rgba(168, 216, 234, 0.1));
+        }
+
+        .theme-card.active::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .theme-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+
+        .theme-preview.default {
+            background: linear-gradient(135deg, #fff5f8, #e8f4f8);
+            border: 3px solid #ff9ecd;
+        }
+
+        .theme-preview.night {
+            background: linear-gradient(135deg, #2d1b4e, #1a0f2e);
+            border: 3px solid #e8b4e0;
+        }
+
+        .theme-name {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .theme-desc {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* Automation Section */
+        .automation-box {
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 2px solid var(--primary-light);
+        }
+
+        .automation-title {
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--primary-light);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle.active {
+            background: var(--success);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle.active .toggle-slider {
+            transform: translateX(30px);
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .schedule-item {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 15px;
+            border: 2px solid var(--primary-light);
+        }
+
+        .schedule-item label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        /* Duaa List */
+        .duaa-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .duaa-item {
+            background: linear-gradient(135deg, #fff5f9, #ffe8f2);
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            border: 2px solid rgba(255, 158, 205, 0.4);
+        }
+
+        .duaa-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .duaa-item-number {
+            background: rgba(255, 158, 205, 0.2);
+            color: #ff7eb8;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .duaa-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .duaa-item-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .duaa-item-edit {
+            background: rgba(255, 158, 205, 0.2);
+            color: #ff7eb8;
+        }
+
+        .duaa-item-edit:hover {
+            background: rgba(255, 158, 205, 0.4);
+        }
+
+        .duaa-item-delete {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .duaa-item-delete:hover {
+            background: rgba(255, 107, 107, 0.4);
+        }
+
+        .duaa-item-text {
+            color: #5a4a5a;
+            font-size: 16px;
+            line-height: 1.8;
+            text-align: center;
+            font-family: 'Amiri', serif;
+            direction: rtl;
+            margin-bottom: 10px;
+        }
+
+        .duaa-item-translation {
+            color: #8a7a8a;
+            font-size: 13px;
+            line-height: 1.6;
+            text-align: center;
+            font-style: italic;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 158, 205, 0.3);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #00cec9);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 184, 148, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #ff5252);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #dfe6e9;
+            color: var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #b2bec3;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        /* File Upload */
+        .file-upload {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            border: 2px dashed var(--primary-light);
+            border-radius: 15px;
+            background: var(--bg-gradient-start);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-text {
+            font-size: 14px;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        .file-upload-preview {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .file-upload-preview.active {
+            display: block;
+        }
+
+        .file-upload.has-file {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* Voice Upload */
+        .voice-upload {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg-gradient-start);
+            border-radius: 12px;
+            border: 2px dashed var(--primary-light);
+        }
+
+        .voice-upload.has-file {
+            border-color: var(--success);
+            background: rgba(0, 184, 148, 0.1);
+        }
+
+        .voice-upload-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        .voice-upload-label input[type="file"] {
+            display: none;
+        }
+
+        .voice-icon {
+            font-size: 24px;
+        }
+
+        .voice-text {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .voice-preview {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .voice-preview.active {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .voice-preview audio {
+            flex: 1;
+        }
+
+        .voice-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Parts Container */
+        .parts-container {
+            margin-top: 20px;
+        }
+
+        .part-item {
+            background: var(--bg-gradient-start);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid var(--primary-light);
+        }
+
+        .part-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .part-number {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .part-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .add-part-btn {
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed var(--primary);
+            border-radius: 15px;
+            background: transparent;
+            color: var(--primary-dark);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-part-btn:hover {
+            background: var(--primary-light);
+        }
+
+        /* Days List */
+        .days-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .day-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-gradient-start);
+            border-radius: 15px;
+            border: 2px solid var(--primary-light);
+        }
+
+        .day-info {
+            font-weight: 600;
+        }
+
+        .day-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .day-edit, .day-delete {
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .day-edit {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .day-delete {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Messages List */
+        .messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message-item {
+            background: var(--bg-gradient-start);
+            border-radius: 15px;
+            padding: 15px 20px;
+            border: 2px solid var(--primary-light);
+        }
+
+        .message-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .message-text {
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 15px;
+            }
+
+            .admin-tabs {
+                gap: 5px;
+            }
+
+            .admin-tab {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+
+            .admin-section {
+                padding: 20px;
+            }
+
+            .theme-options {
+                grid-template-columns: 1fr;
+            }
+
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .day-item {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Main Admin Container -->
+    <div class="admin-container" id="adminContainer">
+        <!-- Header -->
+        <div class="admin-header">
+            <h1>🌸 Aiko Admin Panel</h1>
+            <p>Manage themes, messages, days, and duaa for Aiko's support website</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="switchTab('themes')">🎨 Themes</button>
+            <button class="admin-tab" onclick="switchTab('welcome')">👋 Welcome</button>
+            <button class="admin-tab" onclick="switchTab('character')">👤 Character</button>
+            <button class="admin-tab" onclick="switchTab('days')">📅 Days</button>
+            <button class="admin-tab" onclick="switchTab('add')">➕ Add Day</button>
+            <button class="admin-tab" onclick="switchTab('messages')">💬 Messages</button>
+            <button class="admin-tab" onclick="switchTab('duaas')">🤲🏻 Duaa</button>
+            <button class="admin-tab" onclick="switchTab('settings')">⚙️ Settings</button>
+        </div>
+
+        <!-- Themes Section -->
+        <div class="admin-section active" id="tab-themes">
+            <h2 class="section-title">🎨 Theme Switcher</h2>
+            <p class="form-hint" style="margin-bottom: 20px;">Choose the theme for Aiko's website. Only one can be active at a time.</p>
+            
+            <div class="theme-options">
+                <div class="theme-card active" id="theme-default" onclick="selectTheme('default')">
+                    <div class="theme-preview default">💕</div>
+                    <div class="theme-name">Default Theme</div>
+                    <div class="theme-desc">Pink hearts & soft colors with floating hearts animation</div>
+                </div>
+                
+                <div class="theme-card" id="theme-night" onclick="selectTheme('night')">
+                    <div class="theme-preview night">🌙</div>
+                    <div class="theme-name">Night Vibes</div>
+                    <div class="theme-desc">Magical night with twinkling stars, shooting stars & moons</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveTheme()">💾 Save Theme</button>
+
+            <!-- Automation Section -->
+            <div class="automation-box">
+                <div class="automation-title">
+                    <span>⏰</span>
+                    <span>Automatic Night Theme (Lebanon Time)</span>
+                </div>
+                
+                <div class="toggle-container">
+                    <div class="toggle" id="automationToggle" onclick="toggleAutomation()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <span id="automationStatus">Automation: Off</span>
+                </div>
+
+                <div id="scheduleContainer" style="display: none;">
+                    <p class="form-hint">Set when night theme should automatically activate:</p>
+                    <div class="schedule-grid">
+                        <div class="schedule-item">
+                            <label>🌙 Night Theme Start Time</label>
+                            <input type="time" class="form-input" id="nightTime" value="19:00">
+                        </div>
+                        <div class="schedule-item">
+                            <label>☀️ Back to Default Time</label>
+                            <input type="time" class="form-input" id="defaultTime" value="06:00">
+                        </div>
+                    </div>
+                    <p class="form-hint" style="margin-top: 15px;">💡 Default theme will be active outside these hours</p>
+                </div>
+
+                <button class="btn btn-success" onclick="saveAutomation()" style="margin-top: 20px;">💾 Save Automation Settings</button>
+            </div>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="admin-section" id="tab-welcome">
+            <h2 class="section-title">👋 Welcome Message Settings</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Welcome Icon (emoji)</label>
+                <input type="text" class="form-input" id="welcomeIconInput" placeholder="🌸" maxlength="5">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Welcome Title</label>
+                <input type="text" class="form-input" id="welcomeTitleInput" placeholder="Hello Aiko!">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Welcome Message</label>
+                <textarea class="form-textarea" id="welcomeTextInput" placeholder="Enter your welcome message..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Hide Welcome Message Forever</label>
+                <div class="toggle-container">
+                    <div class="toggle" id="hideWelcomeToggle" onclick="toggleWelcome()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <span id="toggleStatus">Off</span>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="saveWelcomeSettings()">💾 Save Welcome Settings</button>
+        </div>
+
+        <!-- Character Section -->
+        <div class="admin-section" id="tab-character">
+            <h2 class="section-title">👤 Character Image</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Upload Character Image</label>
+                <div class="file-upload" id="characterUpload">
+                    <input type="file" id="characterFileInput" accept="image/*" onchange="handleCharacterUpload(this)">
+                    <div class="file-upload-icon">📷</div>
+                    <div class="file-upload-text">Click to upload an image<br><small>or drag and drop</small></div>
+                    <img class="file-upload-preview" id="characterPreview">
+                </div>
+                <input type="hidden" id="characterImageUrl">
+            </div>
+            
+            <button class="btn btn-primary" onclick="saveCharacter()">💾 Save Character</button>
+        </div>
+
+        <!-- Days List Section -->
+        <div class="admin-section" id="tab-days">
+            <h2 class="section-title">📅 Manage Days</h2>
+            <div class="days-list" id="daysList">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading days...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Day Section -->
+        <div class="admin-section" id="tab-add">
+            <h2 class="section-title">➕ Add/Edit Day</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Day Number</label>
+                <input type="number" class="form-input" id="dayNumberInput" min="1" placeholder="Enter day number">
+            </div>
+            
+            <div class="parts-container" id="partsContainer">
+                <!-- Parts will be added here -->
+            </div>
+            
+            <button class="add-part-btn" onclick="addPart()">+ Add Message Part</button>
+            <button class="btn btn-primary" style="margin-top: 20px; width: 100%;" onclick="saveDay()">💾 Save Day</button>
+        </div>
+
+        <!-- Messages Section -->
+        <div class="admin-section" id="tab-messages">
+            <h2 class="section-title">💬 Send Message to Aiko</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Your Message</label>
+                <textarea class="form-textarea" id="newMessageText" placeholder="Write a casual message to encourage Aiko...
+
+Examples:
+Hey! Just checking in - hope your studying is going well! 💪
+Remember to take breaks! You're doing amazing! ✨
+Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="sendMessage()">📨 Send Message</button>
+
+            <div style="margin-top: 30px;">
+                <h3 style="color: var(--text-dark); margin-bottom: 15px;">📬 Sent Messages</h3>
+                <div class="messages-list" id="messagesList">
+                    <p style="color: var(--text-light); text-align: center; padding: 20px;">No messages yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Duaa Section -->
+        <div class="admin-section" id="tab-duaas">
+            <h2 class="section-title">🤲🏻 Manage Duaa & Prayers</h2>
+            <p class="form-hint" style="margin-bottom: 20px;">Add Islamic prayers/duaa that Aiko can read. They will appear in a beautiful pink-themed overlay.</p>
+            
+            <div class="form-group">
+                <label class="form-label">Duaa Text (Arabic/Any Language)</label>
+                <textarea class="form-textarea" id="duaaTextInput" placeholder="Enter the duaa text here..." style="min-height: 100px; direction: rtl; font-family: 'Amiri', serif;"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Translation (Optional)</label>
+                <textarea class="form-textarea" id="duaaTranslationInput" placeholder="Enter the translation/meaning..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Order Index</label>
+                <input type="number" class="form-input" id="duaaOrderInput" min="1" placeholder="Display order (1, 2, 3...)">
+            </div>
+            
+            <input type="hidden" id="editingDuaaId">
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="saveDuaa()">💾 Save Duaa</button>
+                <button class="btn btn-secondary" onclick="clearDuaaForm()" id="clearDuaaBtn" style="display: none;">❌ Cancel Edit</button>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <h3 style="color: var(--text-dark); margin-bottom: 15px;">🌸 Saved Duaas</h3>
+                <div class="duaa-list" id="duaasList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌸</div>
+                        <p>No duaas added yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="admin-section" id="tab-settings">
+            <h2 class="section-title">⚙️ General Settings</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Total Number of Days</label>
+                <input type="number" class="form-input" id="totalDaysInput" min="1" placeholder="Enter total days (e.g., 15, 30, 50)">
+                <p class="form-hint">This controls how many days Aiko needs to complete before seeing the congratulations message.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Gift Video (Special Surprise) 🎁</label>
+                <div class="file-upload" id="giftVideoUpload">
+                    <input type="file" id="giftVideoFileInput" accept="video/*" onchange="handleGiftVideoUpload(this)">
+                    <div class="file-upload-icon">🎬</div>
+                    <div class="file-upload-text">Click to upload a video<br><small>MP4, MOV, WEBM, etc.</small></div>
+                    <video class="file-upload-preview" id="giftVideoPreview" style="border-radius: 10px; max-width: 200px;" controls></video>
+                </div>
+                <input type="hidden" id="giftVideoUrl">
+                <p class="form-hint">Upload a special video that will appear when Aiko clicks the gift button!</p>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+        </div>
+    </div>
+
+    <script>
+
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = 'https://ferapozpiqskfflsbizy.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_GmR9-CM1hvtC7kxRCI_KRA_bxxv1_nl';
+        
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            console.error('Supabase init error:', e);
+        }
+
+        // ============================================
+        // STATE
+        // ============================================
+        const STORAGE_BUCKET = 'images';
+        
+        let currentTheme = 'default';
+        let automationEnabled = false;
+        let allDays = [];
+        let allMessages = [];
+        let allDuaas = [];
+        let editingDayId = null;
+        let editingDuaaId = null;
+        let partCounter = 0;
+        let uploadedFiles = {};
+        let uploadedVoices = {};
+        let welcomeSettings = {};
+        let totalDays = 15;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+        });
+
+        // ============================================
+        // DATA LOADING
+        // ============================================
+        async function loadAllData() {
+            await Promise.all([
+                loadTheme(),
+                loadAutomation(),
+                loadWelcomeSettings(),
+                loadCharacter(),
+                loadDays(),
+                loadMessages(),
+                loadDuaas(),
+                loadSettings()
+            ]);
+        }
+
+        async function loadTheme() {
+            try {
+                const { data, error } = await supabase
+                    .from('themes')
+                    .select('*')
+                    .eq('id', 1)
+                    .single();
+
+                if (data) {
+                    currentTheme = data.theme_name || 'default';
+                    updateThemeUI();
+                } else {
+                    await supabase.from('themes').insert({ id: 1, theme_name: 'default' });
+                }
+            } catch (error) {
+                console.error('Error loading theme:', error);
+            }
+        }
+
+        async function loadAutomation() {
+            try {
+                const { data, error } = await supabase
+                    .from('theme_automation')
+                    .select('*')
+                    .eq('id', 1)
+                    .single();
+
+                if (data) {
+                    automationEnabled = data.enabled || false;
+                    document.getElementById('nightTime').value = data.night_time || '19:00';
+                    document.getElementById('defaultTime').value = data.default_time || '06:00';
+                    updateAutomationUI();
+                }
+            } catch (error) {
+                console.error('Error loading automation:', error);
+            }
+        }
+
+        async function loadWelcomeSettings() {
+            try {
+                const { data, error } = await supabase
+                    .from('welcome_settings')
+                    .select('*')
+                    .single();
+
+                if (data) {
+                    welcomeSettings = data;
+                    document.getElementById('welcomeIconInput').value = data.icon || '';
+                    document.getElementById('welcomeTitleInput').value = data.title || '';
+                    document.getElementById('welcomeTextInput').value = data.message || '';
+                    
+                    if (data.hidden) {
+                        document.getElementById('hideWelcomeToggle').classList.add('active');
+                        document.getElementById('toggleStatus').textContent = 'On';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading welcome settings:', error);
+            }
+        }
+
+        async function loadCharacter() {
+            try {
+                const { data, error } = await supabase
+                    .from('character')
+                    .select('*')
+                    .single();
+
+                if (data && data.image_url) {
+                    document.getElementById('characterImageUrl').value = data.image_url;
+                    document.getElementById('characterPreview').src = data.image_url;
+                    document.getElementById('characterPreview').classList.add('active');
+                    document.getElementById('characterUpload').classList.add('has-file');
+                }
+            } catch (error) {
+                console.error('Error loading character:', error);
+            }
+        }
+
+        async function loadDays() {
+            try {
+                const { data: daysData, error } = await supabase
+                    .from('days')
+                    .select('*')
+                    .order('day_number');
+
+                if (error) throw error;
+
+                allDays = [];
+                for (const day of (daysData || [])) {
+                    const { count } = await supabase
+                        .from('day_parts')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('day_id', day.id);
+                    
+                    allDays.push({
+                        ...day,
+                        day_parts: new Array(count || 0)
+                    });
+                }
+
+                renderDaysList();
+            } catch (error) {
+                console.error('Error loading days:', error);
+            }
+        }
+
+        async function loadMessages() {
+            try {
+                const { data, error } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allMessages = data || [];
+                renderMessagesList();
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        async function loadDuaas() {
+            try {
+                const { data, error } = await supabase
+                    .from('duaas')
+                    .select('*')
+                    .order('order_index');
+
+                if (error) throw error;
+
+                allDuaas = data || [];
+                renderDuaasList();
+            } catch (error) {
+                console.error('Error loading duaas:', error);
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const { data, error } = await supabase
+                    .from('settings')
+                    .select('*')
+                    .eq('key', 'total_days')
+                    .single();
+
+                if (data && data.value) {
+                    totalDays = parseInt(data.value);
+                    document.getElementById('totalDaysInput').value = totalDays;
+                }
+
+                const { data: videoData } = await supabase
+                    .from('settings')
+                    .select('*')
+                    .eq('key', 'gift_video_url')
+                    .single();
+
+                if (videoData && videoData.value) {
+                    document.getElementById('giftVideoUrl').value = videoData.value;
+                    document.getElementById('giftVideoPreview').src = videoData.value;
+                    document.getElementById('giftVideoPreview').classList.add('active');
+                    document.getElementById('giftVideoUpload').classList.add('has-file');
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        // ============================================
+        // THEME FUNCTIONS
+        // ============================================
+        function selectTheme(theme) {
+            currentTheme = theme;
+            updateThemeUI();
+        }
+
+        function updateThemeUI() {
+            document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
+            document.getElementById(`theme-${currentTheme}`).classList.add('active');
+        }
+
+        async function saveTheme() {
+            try {
+                const { error } = await supabase
+                    .from('themes')
+                    .upsert({ id: 1, theme_name: currentTheme, updated_at: new Date().toISOString() });
+
+                if (error) throw error;
+
+                alert(`Theme saved! Aiko's website is now using the ${currentTheme} theme! ✨`);
+            } catch (error) {
+                console.error('Error saving theme:', error);
+                alert('Error saving theme: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // AUTOMATION FUNCTIONS
+        // ============================================
+        function toggleAutomation() {
+            automationEnabled = !automationEnabled;
+            updateAutomationUI();
+        }
+
+        function updateAutomationUI() {
+            const toggle = document.getElementById('automationToggle');
+            const status = document.getElementById('automationStatus');
+            const container = document.getElementById('scheduleContainer');
+            
+            if (automationEnabled) {
+                toggle.classList.add('active');
+                status.textContent = 'Automation: On';
+                container.style.display = 'block';
+            } else {
+                toggle.classList.remove('active');
+                status.textContent = 'Automation: Off';
+                container.style.display = 'none';
+            }
+        }
+
+        async function saveAutomation() {
+            try {
+                const nightTime = document.getElementById('nightTime').value;
+                const defaultTime = document.getElementById('defaultTime').value;
+
+                const { error } = await supabase
+                    .from('theme_automation')
+                    .upsert({
+                        id: 1,
+                        enabled: automationEnabled,
+                        night_time: nightTime,
+                        default_time: defaultTime,
+                        timezone: 'Asia/Beirut',
+                        updated_at: new Date().toISOString()
+                    });
+
+                if (error) throw error;
+
+                alert('Automation settings saved! 🕐');
+            } catch (error) {
+                console.error('Error saving automation:', error);
+                alert('Error saving automation: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // WELCOME FUNCTIONS
+        // ============================================
+        function toggleWelcome() {
+            const toggle = document.getElementById('hideWelcomeToggle');
+            const status = document.getElementById('toggleStatus');
+            toggle.classList.toggle('active');
+            status.textContent = toggle.classList.contains('active') ? 'On' : 'Off';
+        }
+
+        async function saveWelcomeSettings() {
+            const settings = {
+                icon: document.getElementById('welcomeIconInput').value || '🌸',
+                title: document.getElementById('welcomeTitleInput').value || 'Hello Aiko!',
+                message: document.getElementById('welcomeTextInput').value || 'Welcome!',
+                hidden: document.getElementById('hideWelcomeToggle').classList.contains('active')
+            };
+
+            try {
+                const { error } = await supabase
+                    .from('welcome_settings')
+                    .upsert({ id: 1, ...settings });
+
+                if (error) throw error;
+
+                alert('Welcome settings saved! ✅');
+            } catch (error) {
+                console.error('Error saving welcome settings:', error);
+                alert('Error saving: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // CHARACTER FUNCTIONS
+        // ============================================
+        async function handleCharacterUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById('characterPreview');
+            const uploadArea = document.getElementById('characterUpload');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.classList.add('active');
+                uploadArea.classList.add('has-file');
+            };
+            reader.readAsDataURL(file);
+
+            try {
+                const url = await uploadFile(file, 'character');
+                document.getElementById('characterImageUrl').value = url;
+            } catch (err) {
+                alert('Error uploading image: ' + err.message);
+            }
+        }
+
+        async function saveCharacter() {
+            const imageUrl = document.getElementById('characterImageUrl').value;
+
+            try {
+                const { error } = await supabase
+                    .from('character')
+                    .upsert({ id: 1, image_url: imageUrl });
+
+                if (error) throw error;
+
+                alert('Character saved! ✅');
+            } catch (error) {
+                console.error('Error saving character:', error);
+                alert('Error saving: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // DAYS FUNCTIONS
+        // ============================================
+        function renderDaysList() {
+            const container = document.getElementById('daysList');
+            
+            if (allDays.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>No days created yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = allDays.map(day => `
+                <div class="day-item">
+                    <span class="day-info">Day ${day.day_number} - ${day.day_parts?.length || 0} parts</span>
+                    <div class="day-actions">
+                        <button class="day-edit" onclick="editDay(${day.id})">Edit</button>
+                        <button class="day-delete" onclick="deleteDay(${day.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function editDay(id) {
+            try {
+                const { data: day, error: dayError } = await supabase
+                    .from('days')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (dayError) throw dayError;
+
+                const { data: parts, error: partsError } = await supabase
+                    .from('day_parts')
+                    .select('*')
+                    .eq('day_id', id)
+                    .order('part_order');
+
+                if (partsError) throw partsError;
+
+                editingDayId = id;
+                document.getElementById('dayNumberInput').value = day.day_number;
+                
+                const container = document.getElementById('partsContainer');
+                container.innerHTML = '';
+                partCounter = 0;
+                uploadedFiles = {};
+                uploadedVoices = {};
+
+                if (parts && parts.length > 0) {
+                    parts.forEach(part => {
+                        addPart(part.text, part.image_url, part.voice_url);
+                    });
+                } else {
+                    addPart();
+                }
+
+                switchTab('add');
+            } catch (error) {
+                console.error('Error loading day for edit:', error);
+                alert('Error loading day: ' + error.message);
+            }
+        }
+
+        async function deleteDay(id) {
+            if (!confirm('Are you sure you want to delete this day?')) return;
+
+            try {
+                await supabase.from('day_parts').delete().eq('day_id', id);
+                await supabase.from('days').delete().eq('id', id);
+                
+                await loadDays();
+                alert('Day deleted! ✅');
+            } catch (error) {
+                console.error('Error deleting day:', error);
+                alert('Error deleting: ' + error.message);
+            }
+        }
+
+        function addPart(text = '', imageUrl = '', voiceUrl = '') {
+            partCounter++;
+            const partId = partCounter;
+            const container = document.getElementById('partsContainer');
+            
+            const partDiv = document.createElement('div');
+            partDiv.className = 'part-item';
+            partDiv.id = `part-${partId}`;
+            partDiv.innerHTML = `
+                <div class="part-header">
+                    <span class="part-number">Part ${partId}</span>
+                    <button class="part-remove" onclick="removePart(${partId})">Remove</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message Text</label>
+                    <textarea class="form-textarea part-text" placeholder="Enter your message...">${text}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Image (optional)</label>
+                    <div class="file-upload ${imageUrl ? 'has-file' : ''}" id="partUpload-${partId}">
+                        <input type="file" id="partFileInput-${partId}" accept="image/*" onchange="handlePartUpload(this, ${partId})">
+                        <div class="file-upload-icon">📷</div>
+                        <div class="file-upload-text">Click to upload an image</div>
+                        <img class="file-upload-preview ${imageUrl ? 'active' : ''}" id="partPreview-${partId}" src="${imageUrl || ''}">
+                    </div>
+                    <input type="hidden" class="part-image-url" id="partImageUrl-${partId}" value="${imageUrl || ''}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Voice Message (optional)</label>
+                    <div class="voice-upload ${voiceUrl ? 'has-file' : ''}" id="voiceUpload-${partId}">
+                        <label class="voice-upload-label">
+                            <input type="file" id="voiceFileInput-${partId}" accept="audio/*" onchange="handleVoiceUpload(this, ${partId})">
+                            <span class="voice-icon">🎙️</span>
+                            <span class="voice-text">Click to upload voice message</span>
+                        </label>
+                        <div class="voice-preview ${voiceUrl ? 'active' : ''}" id="voicePreview-${partId}">
+                            <audio controls src="${voiceUrl || ''}"></audio>
+                            <button class="voice-remove" onclick="removeVoice(${partId})">Remove</button>
+                        </div>
+                    </div>
+                    <input type="hidden" class="part-voice-url" id="partVoiceUrl-${partId}" value="${voiceUrl || ''}">
+                </div>
+            `;
+            
+            container.appendChild(partDiv);
+            
+            // Store existing voice URL
+            if (voiceUrl) {
+                uploadedVoices[partId] = voiceUrl;
+            }
+        }
+
+        function removePart(id) {
+            const part = document.getElementById(`part-${id}`);
+            if (part) {
+                part.remove();
+                delete uploadedFiles[id];
+                delete uploadedVoices[id];
+                const parts = document.querySelectorAll('.part-item');
+                parts.forEach((p, index) => {
+                    p.querySelector('.part-number').textContent = `Part ${index + 1}`;
+                });
+                partCounter = parts.length;
+            }
+        }
+
+        async function handlePartUpload(input, partId) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById(`partPreview-${partId}`);
+            const uploadArea = document.getElementById(`partUpload-${partId}`);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.classList.add('active');
+                uploadArea.classList.add('has-file');
+            };
+            reader.readAsDataURL(file);
+
+            try {
+                const url = await uploadFile(file, 'day_parts');
+                uploadedFiles[partId] = url;
+                document.getElementById(`partImageUrl-${partId}`).value = url;
+            } catch (err) {
+                alert('Error uploading image: ' + err.message);
+            }
+        }
+
+        async function handleVoiceUpload(input, partId) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById(`voicePreview-${partId}`);
+            const uploadArea = document.getElementById(`voiceUpload-${partId}`);
+            const audio = preview.querySelector('audio');
+
+            const url = URL.createObjectURL(file);
+            audio.src = url;
+            preview.classList.add('active');
+            uploadArea.classList.add('has-file');
+
+            try {
+                const uploadedUrl = await uploadFile(file, 'voice_messages');
+                uploadedVoices[partId] = uploadedUrl;
+                document.getElementById(`partVoiceUrl-${partId}`).value = uploadedUrl;
+                audio.src = uploadedUrl;
+            } catch (err) {
+                alert('Error uploading voice: ' + err.message);
+            }
+        }
+
+        function removeVoice(partId) {
+            document.getElementById(`voiceFileInput-${partId}`).value = '';
+            document.getElementById(`voicePreview-${partId}`).classList.remove('active');
+            document.getElementById(`voiceUpload-${partId}`).classList.remove('has-file');
+            document.getElementById(`partVoiceUrl-${partId}`).value = '';
+            delete uploadedVoices[partId];
+        }
+
+        async function saveDay() {
+            const dayNumber = parseInt(document.getElementById('dayNumberInput').value);
+            if (!dayNumber || dayNumber < 1) {
+                alert('Please enter a valid day number (minimum 1)');
+                return;
+            }
+
+            try {
+                const parts = [];
+                document.querySelectorAll('.part-item').forEach((partEl, index) => {
+                    const text = partEl.querySelector('.part-text').value.trim();
+                    const imageUrl = partEl.querySelector('.part-image-url').value.trim();
+                    const voiceUrl = partEl.querySelector('.part-voice-url').value.trim();
+                    if (text) {
+                        parts.push({ 
+                            text, 
+                            image_url: imageUrl || null,
+                            voice_url: voiceUrl || null,
+                            part_order: index 
+                        });
+                    }
+                });
+
+                if (parts.length === 0) {
+                    alert('Please add at least one message part');
+                    return;
+                }
+
+                let dayId = editingDayId;
+
+                if (editingDayId) {
+                    await supabase.from('days').update({ day_number: dayNumber }).eq('id', editingDayId);
+                    await supabase.from('day_parts').delete().eq('day_id', editingDayId);
+                } else {
+                    const existing = allDays.find(d => d.day_number === dayNumber);
+                    if (existing) {
+                        alert(`Day ${dayNumber} already exists! Please edit it instead.`);
+                        return;
+                    }
+
+                    const { data } = await supabase.from('days').insert({ day_number: dayNumber }).select().single();
+                    dayId = data.id;
+                }
+
+                const partsToInsert = parts.map(p => ({
+                    day_id: dayId,
+                    text: p.text,
+                    image_url: p.image_url,
+                    voice_url: p.voice_url,
+                    part_order: p.part_order
+                }));
+
+                await supabase.from('day_parts').insert(partsToInsert);
+
+                await loadDays();
+                
+                editingDayId = null;
+                document.getElementById('dayNumberInput').value = '';
+                document.getElementById('partsContainer').innerHTML = '';
+                partCounter = 0;
+                uploadedFiles = {};
+                uploadedVoices = {};
+                addPart();
+
+                alert(`Day ${dayNumber} saved! ✅`);
+                switchTab('days');
+
+            } catch (error) {
+                console.error('Error saving day:', error);
+                alert('Error saving: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // MESSAGES FUNCTIONS
+        // ============================================
+        async function sendMessage() {
+            const textarea = document.getElementById('newMessageText');
+            const messageText = textarea.value.trim();
+            
+            if (!messageText) {
+                alert('Please write a message! 💬');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('messages')
+                    .insert({ message_text: messageText });
+
+                if (error) throw error;
+
+                textarea.value = '';
+                await loadMessages();
+                alert('Message sent to Aiko! 💌');
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message: ' + error.message);
+            }
+        }
+
+        function renderMessagesList() {
+            const list = document.getElementById('messagesList');
+            
+            if (allMessages.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 20px;">No messages yet</p>';
+                return;
+            }
+
+            list.innerHTML = allMessages.map(msg => {
+                const time = new Date(msg.created_at);
+                const timeStr = time.toLocaleString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: 'numeric', 
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="message-item">
+                        <div class="message-item-header">
+                            <span class="message-time">${timeStr}</span>
+                            <button onclick="deleteMessage(${msg.id})" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">🗑️ Delete</button>
+                        </div>
+                        <p class="message-text">${msg.message_text}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteMessage(messageId) {
+            if (!confirm('Delete this message?')) return;
+
+            try {
+                await supabase.from('messages').delete().eq('id', messageId);
+                await loadMessages();
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                alert('Error deleting message: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // DUAA FUNCTIONS
+        // ============================================
+        async function saveDuaa() {
+            const arabicText = document.getElementById('duaaTextInput').value.trim();
+            const translation = document.getElementById('duaaTranslationInput').value.trim();
+            const orderIndex = parseInt(document.getElementById('duaaOrderInput').value) || 1;
+            
+            if (!arabicText) {
+                alert('Please enter the duaa text! 🌸');
+                return;
+            }
+
+            try {
+                const duaaData = {
+                    duaa_text: arabicText,
+                    arabic_text: arabicText,
+                    translation: translation,
+                    order_index: orderIndex
+                };
+
+                if (editingDuaaId) {
+                    await supabase.from('duaas').update(duaaData).eq('id', editingDuaaId);
+                } else {
+                    await supabase.from('duaas').insert(duaaData);
+                }
+
+                clearDuaaForm();
+                await loadDuaas();
+                alert(`Duaa ${editingDuaaId ? 'updated' : 'saved'}! 🌸✨`);
+                editingDuaaId = null;
+                
+            } catch (error) {
+                console.error('Error saving duaa:', error);
+                alert('Error saving duaa: ' + error.message);
+            }
+        }
+
+        function renderDuaasList() {
+            const list = document.getElementById('duaasList');
+            
+            if (allDuaas.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌸</div>
+                        <p>No duaas added yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = allDuaas.map((duaa, index) => `
+                <div class="duaa-item">
+                    <div class="duaa-item-header">
+                        <span class="duaa-item-number">Duaa #${duaa.order_index || index + 1}</span>
+                        <div class="duaa-item-actions">
+                            <button class="duaa-item-edit" onclick="editDuaa(${duaa.id})">Edit</button>
+                            <button class="duaa-item-delete" onclick="deleteDuaa(${duaa.id})">Delete</button>
+                        </div>
+                    </div>
+                    <div class="duaa-item-text">${duaa.arabic_text || duaa.duaa_text}</div>
+                    ${duaa.translation ? `<div class="duaa-item-translation">${duaa.translation}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function editDuaa(id) {
+            const duaa = allDuaas.find(d => d.id === id);
+            if (!duaa) return;
+
+            editingDuaaId = id;
+            document.getElementById('duaaTextInput').value = duaa.arabic_text || duaa.duaa_text;
+            document.getElementById('duaaTranslationInput').value = duaa.translation || '';
+            document.getElementById('duaaOrderInput').value = duaa.order_index || '';
+            document.getElementById('clearDuaaBtn').style.display = 'inline-flex';
+        }
+
+        function clearDuaaForm() {
+            editingDuaaId = null;
+            document.getElementById('duaaTextInput').value = '';
+            document.getElementById('duaaTranslationInput').value = '';
+            document.getElementById('duaaOrderInput').value = '';
+            document.getElementById('clearDuaaBtn').style.display = 'none';
+        }
+
+        async function deleteDuaa(id) {
+            if (!confirm('Delete this duaa?')) return;
+
+            try {
+                await supabase.from('duaas').delete().eq('id', id);
+                await loadDuaas();
+            } catch (error) {
+                console.error('Error deleting duaa:', error);
+                alert('Error deleting duaa: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // SETTINGS FUNCTIONS
+        // ============================================
+        async function handleGiftVideoUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById('giftVideoPreview');
+            const uploadArea = document.getElementById('giftVideoUpload');
+
+            try {
+                const url = await uploadFile(file, 'videos');
+                document.getElementById('giftVideoUrl').value = url;
+                preview.src = url;
+                preview.classList.add('active');
+                uploadArea.classList.add('has-file');
+                alert('Video uploaded! Remember to save settings.');
+            } catch (err) {
+                alert('Error uploading video: ' + err.message);
+            }
+        }
+
+        async function saveSettings() {
+            const newTotalDays = parseInt(document.getElementById('totalDaysInput').value);
+            const giftVideoUrl = document.getElementById('giftVideoUrl').value;
+            
+            try {
+                if (newTotalDays && newTotalDays >= 1) {
+                    await supabase.from('settings').upsert({ key: 'total_days', value: newTotalDays.toString() }, { onConflict: 'key' });
+                    totalDays = newTotalDays;
+                }
+
+                if (giftVideoUrl) {
+                    await supabase.from('settings').upsert({ key: 'gift_video_url', value: giftVideoUrl }, { onConflict: 'key' });
+                }
+
+                alert('Settings saved! ✅');
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Error saving settings: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        async function uploadFile(file, folder) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `${folder}/${fileName}`;
+
+            const { data, error } = await supabase.storage
+                .from(STORAGE_BUCKET)
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            const { data: urlData } = supabase.storage
+                .from(STORAGE_BUCKET)
+                .getPublicUrl(filePath);
+
+            return urlData.publicUrl;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            
+            const clickedTab = document.querySelector(`.admin-tab[onclick*="'${tab}'"]`);
+            if (clickedTab) clickedTab.classList.add('active');
+            
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
 
