@@ -746,6 +746,238 @@
             margin-bottom: 15px;
         }
 
+        /* Password Lock Screen */
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fff5f8 0%, #fce4ec 30%, #e8f4f8 70%, #f3e5f5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: lockBgShift 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes lockBgShift {
+            0% { background: linear-gradient(135deg, #fff5f8 0%, #fce4ec 30%, #e8f4f8 70%, #f3e5f5 100%); }
+            100% { background: linear-gradient(135deg, #f3e5f5 0%, #e8f4f8 30%, #fce4ec 70%, #fff5f8 100%); }
+        }
+
+        .lock-screen.hidden {
+            animation: lockFadeOut 0.6s ease forwards;
+            pointer-events: none;
+        }
+
+        @keyframes lockFadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.05); }
+        }
+
+        .lock-card {
+            background: var(--white);
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(255, 158, 205, 0.25), 0 0 0 1px rgba(255, 158, 205, 0.1);
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+            animation: lockCardFloat 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lock-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light), var(--primary-light));
+            border-radius: 31px;
+            z-index: -1;
+            animation: borderGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes borderGlow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes lockCardFloat {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .lock-icon-wrapper {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            animation: lockBounce 2s ease-in-out infinite;
+            box-shadow: 0 8px 25px rgba(255, 158, 205, 0.3);
+        }
+
+        @keyframes lockBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .lock-icon-wrapper svg {
+            width: 44px;
+            height: 44px;
+            color: var(--primary-dark);
+            filter: drop-shadow(0 2px 4px rgba(255, 126, 184, 0.3));
+        }
+
+        .lock-title {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .lock-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+        .lock-input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .lock-input {
+            width: 100%;
+            padding: 14px 50px 14px 20px;
+            border: 2.5px solid var(--primary-light);
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--text-dark);
+            background: #fff;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+        }
+
+        .lock-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 158, 205, 0.15);
+        }
+
+        .lock-input.shake {
+            animation: inputShake 0.5s ease;
+            border-color: var(--danger);
+        }
+
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+
+        .lock-toggle-pw {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+
+        .lock-toggle-pw:hover {
+            color: var(--primary-dark);
+        }
+
+        .lock-toggle-pw svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .lock-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .lock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 126, 184, 0.4);
+        }
+
+        .lock-btn:active {
+            transform: translateY(0);
+        }
+
+        .lock-error {
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lock-error.visible {
+            opacity: 1;
+        }
+
+        .lock-hearts {
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--primary-light);
+            letter-spacing: 4px;
+        }
+
+        /* floating hearts background */
+        .lock-floating-heart {
+            position: fixed;
+            font-size: 20px;
+            opacity: 0.15;
+            animation: floatUp linear infinite;
+            z-index: 9998;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0.15; }
+            50% { opacity: 0.25; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .admin-container {
@@ -783,9 +1015,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-        
-    <!-- Main Admin Container -->
-    <div class="admin-container" id="adminContainer">
+    <!-- Password Lock Screen -->
+    <div class="lock-screen" id="lockScreen">
+        <!-- Floating hearts background -->
+        <div class="lock-card">
+            <div class="lock-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <div class="lock-title">Welcome Back!</div>
+            <div class="lock-subtitle">Enter the password to access the admin panel</div>
+            <form onsubmit="checkPassword(event)">
+                <div class="lock-input-wrapper">
+                    <input 
+                        type="password" 
+                        class="lock-input" 
+                        id="lockPasswordInput" 
+                        placeholder="Enter password..." 
+                        autocomplete="off"
+                        autofocus
+                    >
+                    <button type="button" class="lock-toggle-pw" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility">
+                        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg id="eyeOffIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+                <button type="submit" class="lock-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                    </svg>
+                    Unlock
+                </button>
+            </form>
+            <div class="lock-error" id="lockError">Wrong password, try again!</div>
+            <div class="lock-hearts">&#10084; &#10084; &#10084;</div>
+        </div>
+    </div>
+
+    <!-- Main Admin Container (hidden until unlocked) -->
+    <div class="admin-container" id="adminContainer" style="display: none;">
         <!-- Header -->
         <div class="admin-header">
             <h1>🌸 Aiko Admin Panel</h1>
@@ -1025,6 +1303,82 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
     </div>
 
     <script>
+        // ============================================
+        // PASSWORD LOCK
+        // ============================================
+        const ADMIN_PASSWORD = 'sorex123';
+
+        // Create floating hearts for the lock screen
+        function createFloatingHearts() {
+            const hearts = ['&#10084;', '&#10085;', '&#10083;'];
+            const lockScreen = document.getElementById('lockScreen');
+            for (let i = 0; i < 12; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'lock-floating-heart';
+                heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = (6 + Math.random() * 8) + 's';
+                heart.style.animationDelay = (Math.random() * 5) + 's';
+                heart.style.fontSize = (14 + Math.random() * 18) + 'px';
+                document.body.appendChild(heart);
+            }
+        }
+
+        function checkPassword(e) {
+            e.preventDefault();
+            const input = document.getElementById('lockPasswordInput');
+            const error = document.getElementById('lockError');
+
+            if (input.value === ADMIN_PASSWORD) {
+                const lockScreen = document.getElementById('lockScreen');
+                lockScreen.classList.add('hidden');
+                // Remove floating hearts
+                document.querySelectorAll('.lock-floating-heart').forEach(h => h.remove());
+                // Show admin panel
+                document.getElementById('adminContainer').style.display = 'block';
+                setTimeout(() => {
+                    lockScreen.style.display = 'none';
+                }, 600);
+                // Remember session
+                sessionStorage.setItem('admin_unlocked', 'true');
+            } else {
+                input.classList.add('shake');
+                error.classList.add('visible');
+                setTimeout(() => {
+                    input.classList.remove('shake');
+                }, 500);
+                setTimeout(() => {
+                    error.classList.remove('visible');
+                }, 2500);
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('lockPasswordInput');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const eyeOffIcon = document.getElementById('eyeOffIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.style.display = 'none';
+                eyeOffIcon.style.display = 'block';
+            } else {
+                input.type = 'password';
+                eyeIcon.style.display = 'block';
+                eyeOffIcon.style.display = 'none';
+            }
+        }
+
+        // Check if already unlocked this session
+        if (sessionStorage.getItem('admin_unlocked') === 'true') {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'block';
+            });
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                createFloatingHearts();
+            });
+        }
 
         // ============================================
         // SUPABASE CONFIGURATION
@@ -1926,4 +2280,3 @@ Don't forget to drink water! 💧" style="min-height: 150px;"></textarea>
     </script>
 </body>
 </html>
-
